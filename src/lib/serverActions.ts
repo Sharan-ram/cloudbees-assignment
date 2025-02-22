@@ -75,3 +75,21 @@ export async function getIdeaById(id) {
     return null;
   }
 }
+
+export async function addIdea(newIdea) {
+  try {
+    const ideas = await getIdeas();
+    const updatedIdeas = [...ideas, { id: Date.now(), ...newIdea }];
+
+    await fs.writeFile(
+      ideasFilePath,
+      JSON.stringify(updatedIdeas, null, 2),
+      "utf-8"
+    );
+
+    return updatedIdeas;
+  } catch (error) {
+    console.error("Error writing to ideas.json:", error);
+    return [];
+  }
+}
