@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { ArrowFatUp, ArrowFatDown } from "phosphor-react";
+import { ArrowFatUp, ArrowFatDown, Trash } from "phosphor-react";
 import { getIdeas, voteIdea } from "@/lib/serverActions";
 
 export default function IdeaList({ initialIdeas, total }) {
@@ -85,7 +85,35 @@ export default function IdeaList({ initialIdeas, total }) {
     },
   });
 
-  const ideas = data?.pages.flatMap((page) => page.ideas) || [];
+  const deleteMutation = useMutation({
+    mutationFn: (ideaId) => deleteIdea(ideaId),
+    onMutate: async (ideaId) => {
+      await queryClient.cancelQueries(["ideas", search]);
+
+      const previousIdeas = queryClient.getQueryData(["ideas", search]);
+
+      queryClient.setQueryData(["ideas", search], (oldData) => {
+        if (!oldData) return { pages: [] }; // ✅ Ensure pages always exists
+
+        return {
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            ideas: page.ideas.filter((idea) => idea.id !== ideaId),
+          })),
+        };
+      });
+
+      return { previousIdeas };
+    },
+    onError: (_error, _variables, context) => {
+      queryClient.setQueryData(["ideas", search], context.previousIdeas);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["ideas", search]);
+    },
+  });
+
+  const ideas = data?.pages?.flatMap((page) => page.ideas) || [];
 
   return (
     <div>
@@ -131,6 +159,15 @@ export default function IdeaList({ initialIdeas, total }) {
                 {idea.downvotes ?? 0}
               </button>
             </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent parent click event
+                deleteMutation.mutate(idea.id);
+              }}
+              className="ml-4 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
+            >
+              <Trash size={24} weight="bold" />
+            </button>
           </li>
         ))}
       </ul>
