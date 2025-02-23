@@ -6,17 +6,15 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { ArrowFatUp, ArrowFatDown, Trash } from "phosphor-react";
 import { getIdeas, voteIdea } from "@/lib/serverActions";
 import { useDebounce } from "@/hooks/useDebounce";
+import SingleIdea from "./SingleIdea";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
 
   const observer = useRef(null);
-  const router = useRouter();
 
   const queryClient = useQueryClient();
 
@@ -49,7 +47,7 @@ export default function IdeaList() {
     return () => observer.current?.disconnect();
   }, [hasNextPage, fetchNextPage]);
 
-  const mutation = useMutation({
+  const handleVote = useMutation({
     mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
     // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
@@ -68,9 +66,13 @@ export default function IdeaList() {
                 ? {
                     ...idea,
                     upvotes:
-                      type === "upvote" ? idea.upvotes + 1 : idea.upvotes,
+                      type === "upvote"
+                        ? Number(idea.upvotes) + 1
+                        : idea.upvotes,
                     downvotes:
-                      type === "downvote" ? idea.downvotes + 1 : idea.downvotes,
+                      type === "downvote"
+                        ? Number(idea.downvotes) + 1
+                        : idea.downvotes,
                   }
                 : idea
             ),
@@ -88,7 +90,7 @@ export default function IdeaList() {
     },
   });
 
-  const deleteMutation = useMutation({
+  const deleteIdeaMutation = useMutation({
     mutationFn: (ideaId) => deleteIdea(ideaId),
     onMutate: async (ideaId) => {
       await queryClient.cancelQueries(["ideas", search]);
@@ -129,69 +131,14 @@ export default function IdeaList() {
       />
       <ul className="space-y-4">
         {ideas.map((idea, index) => (
-          <li
+          <SingleIdea
             key={index}
-            className="p-4 border rounded-md shadow-md cursor-pointer hover:bg-gray-100 transition bg-white"
-            onClick={() => router.push(`/idea/${idea.id}`)} // Navigate to details page
-          >
-            <div className="flex items-center">
-              <div className="w-[80%]">
-                <h3 className="text-lg font-semibold text-black">
-                  {idea.summary}
-                </h3>
-              </div>
-              <div className="w-[20%] flex justify-end">
-                {/* <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent parent click event
-                    deleteMutation.mutate(idea.id);
-                  }}
-                  className="ml-4 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
-                > */}
-                <Trash
-                  size={24}
-                  weight="bold"
-                  color="#EF4444"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent parent click event
-                    deleteMutation.mutate(idea.id);
-                  }}
-                />
-                {/* </button> */}
-              </div>
-            </div>
-
-            <p className="text-sm text-gray-500">
-              Submitted by: {idea.employee}
-            </p>
-
-            {/* Voting Buttons with Upvote/Downvote Counts */}
-            <div className="flex items-center space-x-4 mt-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent parent click event
-                  mutation.mutate({ ideaId: idea.id, type: "upvote" });
-                }}
-                className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md"
-              >
-                <ArrowFatUp size={20} weight="bold" className="mr-2" />
-                {idea.upvotes ?? 0}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  mutation.mutate({ ideaId: idea.id, type: "downvote" });
-                }}
-                className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md"
-              >
-                <ArrowFatDown size={20} weight="bold" className="mr-2" />
-                {idea.downvotes ?? 0}
-              </button>
-            </div>
-          </li>
+            idea={idea}
+            handleVote={handleVote}
+            deleteIdea={deleteIdeaMutation}
+          />
         ))}
       </ul>
-      {/* Infinite Scroll Trigger */}
       {hasNextPage && <div id="load-more-trigger" className="h-10"></div>}
 
       {/* Loading Indicator */}
@@ -200,9 +147,9 @@ export default function IdeaList() {
       )}
 
       {/* No results message */}
-      {ideas.length === 0 && search && (
+      {ideas.length === 0 && !isFetchingNextPage && !hasNextPage && (
         <p className="text-center text-gray-500 mt-4">
-          No matching ideas found.
+          No ideas found. Click on submit idea in the navbar to create one.
         </p>
       )}
     </div>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as Dialog from "@radix-ui/react-dialog";
 
 const ideaSchema = z.object({
   summary: z.string().min(5, "Summary must be at least 5 characters."),

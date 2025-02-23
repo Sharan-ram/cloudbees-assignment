@@ -1,15 +1,15 @@
-"use client"; // 👈 Make the page interactive
+"use client";
 
-import { useState } from "react";
 import IdeaForm from "@/components/IdeaForm";
-import { addIdea, getIdeas } from "@/lib/serverActions";
+import { addIdea } from "@/lib/serverActions";
+import { useRouter } from "next/navigation";
 
 export default function IdeaPage() {
-  const [ideas, setIdeas] = useState([]);
+  const router = useRouter();
 
   const handleNewIdea = async (newIdea) => {
-    const updatedIdeas = await addIdea(newIdea);
-    setIdeas(updatedIdeas);
+    await addIdea(newIdea);
+    router.push("/");
   };
 
   return (
