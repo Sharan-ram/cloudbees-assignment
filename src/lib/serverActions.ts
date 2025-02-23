@@ -6,10 +6,26 @@ import path from "path";
 const ideasFilePath = path.join(process.cwd(), "ideas.json");
 
 // Fetch paginated ideas
-export async function getIdeas(page = 1, limit = 20) {
+export async function getIdeas(page = 1, limit = 20, search = "") {
   try {
     const data = await fs.readFile(ideasFilePath, "utf-8");
     let allIdeas = JSON.parse(data);
+
+    // Ensure votes are numbers
+    allIdeas.forEach((idea) => {
+      idea.upvotes = Number(idea.upvotes) || 0;
+      idea.downvotes = Number(idea.downvotes) || 0;
+    });
+
+    // Filter by search query (case-insensitive)
+    if (search) {
+      const lowerCaseSearch = search.toLowerCase();
+      allIdeas = allIdeas.filter(
+        (idea) =>
+          idea.summary.toLowerCase().includes(lowerCaseSearch) ||
+          idea.description.toLowerCase().includes(lowerCaseSearch)
+      );
+    }
 
     // Sort by upvotes (Descending)
     allIdeas.sort((a, b) => b.upvotes - a.upvotes);

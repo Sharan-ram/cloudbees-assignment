@@ -1,58 +1,101 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ArrowFatUp, ArrowFatDown } from "phosphor-react";
 import { getIdeas, voteIdea } from "@/lib/serverActions";
 
 export default function IdeaList({ initialIdeas, total }) {
-  const [ideas, setIdeas] = useState(initialIdeas);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+
   const observer = useRef(null);
   const router = useRouter();
 
+  const queryClient = useQueryClient();
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useInfiniteQuery({
+      queryKey: ["ideas", search], // Ensures re-fetch when search changes
+      queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, search),
+      getNextPageParam: (lastPage, allPages) =>
+        lastPage.ideas.length < 20 ? undefined : allPages.length + 1, // Stop fetching when no more pages
+      initialPageParam: 1,
+    });
+
   useEffect(() => {
+    if (!hasNextPage) return;
     observer.current = new IntersectionObserver(
       async (entries) => {
         const first = entries[0];
-        if (first.isIntersecting && ideas.length < total && !loading) {
-          setLoading(true);
-          const newPage = page + 1;
-          const { ideas: newIdeas } = await getIdeas(newPage);
-          setIdeas((prev) => [...prev, ...newIdeas]);
-          setPage(newPage);
-          setLoading(false);
+        if (first.isIntersecting) {
+          fetchNextPage();
         }
       },
       { threshold: 1.0 }
     );
 
-    if (observer.current && document.getElementById("load-more-trigger")) {
-      observer.current.observe(document.getElementById("load-more-trigger"));
+    const trigger = document.getElementById("load-more-trigger");
+    if (observer.current && trigger) {
+      observer.current.observe(trigger);
     }
 
     return () => observer.current?.disconnect();
-  }, [ideas, total, loading, page]);
+  }, [hasNextPage, fetchNextPage]);
 
-  const handleVote = async (ideaId, type) => {
-    const updatedIdeas = await voteIdea(ideaId, type);
-    setIdeas((prev) =>
-      prev.map((idea) =>
-        idea.id === ideaId
-          ? {
-              ...idea,
-              upvotes: type === "upvote" ? idea.upvotes + 1 : idea.upvotes,
-              downvotes:
-                type === "downvote" ? idea.downvotes + 1 : idea.downvotes,
-            }
-          : idea
-      )
-    );
-  };
+  const mutation = useMutation({
+    mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
+    onMutate: async ({ ideaId, type }) => {
+      await queryClient.cancelQueries(["ideas", search]); // Stop other fetches
+
+      const previousIdeas = queryClient.getQueryData(["ideas", search]); // Get current data
+
+      // Optimistically update UI
+      queryClient.setQueryData(["ideas", search], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            ideas: page.ideas.map((idea) =>
+              idea.id === ideaId
+                ? {
+                    ...idea,
+                    upvotes:
+                      type === "upvote" ? idea.upvotes + 1 : idea.upvotes,
+                    downvotes:
+                      type === "downvote" ? idea.downvotes + 1 : idea.downvotes,
+                  }
+                : idea
+            ),
+          })),
+        };
+      });
+
+      return { previousIdeas };
+    },
+    onError: (_error, _variables, context) => {
+      queryClient.setQueryData(["ideas", search], context.previousIdeas); // Revert if error
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["ideas", search]); // Ensure correct data
+    },
+  });
+
+  const ideas = data?.pages.flatMap((page) => page.ideas) || [];
 
   return (
     <div>
+      <input
+        type="text"
+        placeholder="Search ideas..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+      />
       <ul className="space-y-4">
         {ideas.map((idea, index) => (
           <li
@@ -70,7 +113,7 @@ export default function IdeaList({ initialIdeas, total }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent parent click event
-                  handleVote(idea.id, "upvote");
+                  mutation.mutate({ ideaId: idea.id, type: "upvote" });
                 }}
                 className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md"
               >
@@ -80,7 +123,7 @@ export default function IdeaList({ initialIdeas, total }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleVote(idea.id, "downvote");
+                  mutation.mutate({ ideaId: idea.id, type: "downvote" });
                 }}
                 className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md"
               >
@@ -91,9 +134,19 @@ export default function IdeaList({ initialIdeas, total }) {
           </li>
         ))}
       </ul>
-      <div id="load-more-trigger" className="h-10"></div>
-      {loading && (
-        <p className="text-center text-gray-500">Loading more ideas...</p>
+      {/* Infinite Scroll Trigger */}
+      {hasNextPage && <div id="load-more-trigger" className="h-10"></div>}
+
+      {/* Loading Indicator */}
+      {isFetchingNextPage && (
+        <p className="text-center text-gray-500 mt-4">Loading more ideas...</p>
+      )}
+
+      {/* No results message */}
+      {ideas.length === 0 && search && (
+        <p className="text-center text-gray-500 mt-4">
+          No matching ideas found.
+        </p>
       )}
     </div>
   );
