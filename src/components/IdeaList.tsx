@@ -131,7 +131,31 @@ export default function IdeaList({ initialIdeas, total }) {
             className="p-4 border rounded-md shadow-md cursor-pointer hover:bg-gray-100 transition"
             onClick={() => router.push(`/idea/${idea.id}`)} // Navigate to details page
           >
-            <h3 className="text-lg font-semibold">{idea.summary}</h3>
+            <div className="flex items-center">
+              <div className="w-[80%]">
+                <h3 className="text-lg font-semibold">{idea.summary}</h3>
+              </div>
+              <div className="w-[20%] flex justify-end">
+                {/* <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent parent click event
+                    deleteMutation.mutate(idea.id);
+                  }}
+                  className="ml-4 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
+                > */}
+                <Trash
+                  size={24}
+                  weight="bold"
+                  color="#EF4444"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent parent click event
+                    deleteMutation.mutate(idea.id);
+                  }}
+                />
+                {/* </button> */}
+              </div>
+            </div>
+
             <p className="text-sm text-gray-500">
               Submitted by: {idea.employee}
             </p>
@@ -159,15 +183,6 @@ export default function IdeaList({ initialIdeas, total }) {
                 {idea.downvotes ?? 0}
               </button>
             </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent parent click event
-                deleteMutation.mutate(idea.id);
-              }}
-              className="ml-4 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
-            >
-              <Trash size={24} weight="bold" />
-            </button>
           </li>
         ))}
       </ul>
