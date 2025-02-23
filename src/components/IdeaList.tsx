@@ -128,12 +128,14 @@ export default function IdeaList({ initialIdeas, total }) {
         {ideas.map((idea, index) => (
           <li
             key={index}
-            className="p-4 border rounded-md shadow-md cursor-pointer hover:bg-gray-100 transition"
+            className="p-4 border rounded-md shadow-md cursor-pointer hover:bg-gray-100 transition bg-white"
             onClick={() => router.push(`/idea/${idea.id}`)} // Navigate to details page
           >
             <div className="flex items-center">
               <div className="w-[80%]">
-                <h3 className="text-lg font-semibold">{idea.summary}</h3>
+                <h3 className="text-lg font-semibold text-black">
+                  {idea.summary}
+                </h3>
               </div>
               <div className="w-[20%] flex justify-end">
                 {/* <button
