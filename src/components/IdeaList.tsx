@@ -13,7 +13,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 500);
+  const debouncedSearch = useDebounce(search, 300);
 
   const observer = useRef(null);
   const router = useRouter();
@@ -51,10 +51,11 @@ export default function IdeaList() {
 
   const mutation = useMutation({
     mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
+    // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
-      await queryClient.cancelQueries(["ideas", search]); // Stop other fetches
+      await queryClient.cancelQueries(["ideas", search]);
 
-      const previousIdeas = queryClient.getQueryData(["ideas", search]); // Get current data
+      const previousIdeas = queryClient.getQueryData(["ideas", search]);
 
       // Optimistically update UI
       queryClient.setQueryData(["ideas", search], (oldData) => {
@@ -80,10 +81,10 @@ export default function IdeaList() {
       return { previousIdeas };
     },
     onError: (_error, _variables, context) => {
-      queryClient.setQueryData(["ideas", search], context.previousIdeas); // Revert if error
+      queryClient.setQueryData(["ideas", search], context.previousIdeas);
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["ideas", search]); // Ensure correct data
+      queryClient.invalidateQueries(["ideas", search]);
     },
   });
 
