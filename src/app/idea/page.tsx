@@ -13,9 +13,11 @@ export default function IdeaPage() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-md shadow-md max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Submit a New Idea</h1>
-      <IdeaForm onSubmit={handleNewIdea} />
+    <div className="bg-white p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Idea list</h1>
+      <div className="rounded-md shadow-md p-4">
+        <IdeaForm onSubmit={handleNewIdea} />
+      </div>
     </div>
   );
 }
