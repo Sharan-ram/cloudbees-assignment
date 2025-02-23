@@ -9,21 +9,23 @@ import {
 import { useRouter } from "next/navigation";
 import { ArrowFatUp, ArrowFatDown, Trash } from "phosphor-react";
 import { getIdeas, voteIdea } from "@/lib/serverActions";
+import { useDebounce } from "@/hooks/useDebounce";
 
-export default function IdeaList({ initialIdeas, total }) {
+export default function IdeaList() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
 
   const observer = useRef(null);
   const router = useRouter();
 
   const queryClient = useQueryClient();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["ideas", search], // Ensures re-fetch when search changes
+      queryKey: ["ideas", debouncedSearch],
       queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, search),
       getNextPageParam: (lastPage, allPages) =>
-        lastPage.ideas.length < 20 ? undefined : allPages.length + 1, // Stop fetching when no more pages
+        lastPage.ideas.length < 20 ? undefined : allPages.length + 1,
       initialPageParam: 1,
     });
 
@@ -32,7 +34,7 @@ export default function IdeaList({ initialIdeas, total }) {
     observer.current = new IntersectionObserver(
       async (entries) => {
         const first = entries[0];
-        if (first.isIntersecting) {
+        if (first.isIntersecting && hasNextPage) {
           fetchNextPage();
         }
       },
@@ -122,7 +124,7 @@ export default function IdeaList({ initialIdeas, total }) {
         placeholder="Search ideas..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+        className="w-full p-2 border border-gray-300 rounded-md mb-4 text-gray-600"
       />
       <ul className="space-y-4">
         {ideas.map((idea, index) => (
