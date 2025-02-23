@@ -23,6 +23,8 @@ export async function getIdeas(page = 1, limit = 20, search = "") {
     const data = await fs.readFile(ideasFilePath, "utf-8");
     let allIdeas = JSON.parse(data);
 
+    if (allIdeas.length === 0) return { ideas: [], total: 0 };
+
     if (search) {
       const lowerCaseSearch = search.toLowerCase();
       allIdeas = allIdeas.filter(
@@ -94,11 +96,13 @@ export async function getIdeaById(id) {
 
 export async function addIdea(newIdea) {
   try {
-    const ideas = await getIdeas();
+    const { ideas } = await getIdeas();
     const updatedIdeas = [
       ...ideas,
       { id: uuid(), ...newIdea, upvotes: 0, downvotes: 0 },
     ];
+
+    console.log({ updatedIdeas });
 
     await fs.writeFile(
       ideasFilePath,

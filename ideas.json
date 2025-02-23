@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "022ae776-d186-486b-859f-74f6055c3618",
+    "summary": "This is the first idea",
+    "description": "first idea description",
+    "employee": "Bob Smith",
+    "priority": "Low",
+    "upvotes": 0,
+    "downvotes": 0
+  }
+]

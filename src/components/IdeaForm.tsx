@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { addIdea } from "@/lib/serverActions";
+import { useRouter } from "next/navigation";
 
 const ideaSchema = z.object({
   summary: z.string().min(5, "Summary must be at least 5 characters."),
@@ -16,17 +17,7 @@ const ideaSchema = z.object({
 
 type IdeaFormData = z.infer<typeof ideaSchema>;
 
-const employees = [
-  { id: "1", name: "Alice Johnson" },
-  { id: "2", name: "Bob Smith" },
-  { id: "3", name: "Charlie Davis" },
-];
-
-export default function IdeaForm({
-  onSubmit,
-}: {
-  onSubmit: (data: IdeaFormData) => void;
-}) {
+export default function IdeaForm({ employees }: { employees: any }) {
   const {
     register,
     handleSubmit,
@@ -36,12 +27,12 @@ export default function IdeaForm({
     resolver: zodResolver(ideaSchema),
   });
 
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
-  const handleFormSubmit = (data: IdeaFormData) => {
-    onSubmit(data);
-    reset(); // Reset form after submission
-    setOpen(false); // Close modal
+  const handleFormSubmit = async (data: IdeaFormData) => {
+    await addIdea(data);
+    reset();
+    router.push("/");
   };
 
   return (
