@@ -5,8 +5,8 @@
     "description": "yes this is the description",
     "employee": "Charlie Davis",
     "priority": "Low",
-    "upvotes": 0,
-    "downvotes": 0
+    "upvotes": 4,
+    "downvotes": 2
   },
   {
     "id": "8847ea42-0ef3-489e-b919-4d3d40cb7c19",
@@ -14,7 +14,7 @@
     "description": "First idea description",
     "employee": "Alice Johnson",
     "priority": "Medium",
-    "upvotes": 0,
+    "upvotes": 3,
     "downvotes": 0
   },
   {
@@ -23,7 +23,7 @@
     "description": "2nd idea description is here",
     "employee": "Charlie Davis",
     "priority": "Medium",
-    "upvotes": 0,
+    "upvotes": 5,
     "downvotes": 0
   },
   {
@@ -32,8 +32,8 @@
     "description": "now we are into 3rd idea description",
     "employee": "Bob Smith",
     "priority": "High",
-    "upvotes": 0,
-    "downvotes": 0
+    "upvotes": 3,
+    "downvotes": 3
   },
   {
     "id": "8b6361c7-1bd6-4e1e-8696-ba73f96dcfda",

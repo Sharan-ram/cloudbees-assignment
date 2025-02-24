@@ -12,6 +12,8 @@ import SingleIdea from "./SingleIdea";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
+  const [loadingIdea, setLoadingIdea] = useState(null);
+
   const debouncedSearch = useDebounce(search, 300);
 
   const observer = useRef(null);
@@ -52,6 +54,7 @@ export default function IdeaList() {
     mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
     // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
+      setLoadingIdea({ id: ideaId, type });
       await queryClient.cancelQueries(["ideas", debouncedSearch]);
 
       const previousIdeas = queryClient.getQueryData([
@@ -106,7 +109,7 @@ export default function IdeaList() {
       );
     },
     onSettled: () => {
-      console.log("Invalidating 'ideas' query...");
+      setLoadingIdea(null);
       queryClient.invalidateQueries(["ideas", debouncedSearch]);
     },
   });
@@ -167,6 +170,7 @@ export default function IdeaList() {
             idea={idea}
             handleVote={handleVote}
             deleteIdea={deleteIdeaMutation}
+            loadingIdea={loadingIdea}
           />
         ))}
       </ul>

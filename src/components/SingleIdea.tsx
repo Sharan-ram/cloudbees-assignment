@@ -3,7 +3,12 @@
 import { ArrowFatUp, ArrowFatDown, Trash } from "phosphor-react";
 import { useRouter } from "next/navigation";
 
-export default function SingleIdea({ idea, handleVote, deleteIdea }) {
+export default function SingleIdea({
+  idea,
+  handleVote,
+  deleteIdea,
+  loadingIdea,
+}) {
   const router = useRouter();
 
   return (
@@ -38,7 +43,14 @@ export default function SingleIdea({ idea, handleVote, deleteIdea }) {
             e.stopPropagation();
             handleVote.mutate({ ideaId: idea.id, type: "upvote" });
           }}
-          className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md"
+          disabled={
+            loadingIdea?.id === idea.id && loadingIdea.type === "upvote"
+          }
+          className={`flex items-center px-3 py-1 rounded-md ${
+            loadingIdea?.id === idea.id && loadingIdea.type === "upvote"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-500"
+          }`}
         >
           <ArrowFatUp size={20} weight="bold" className="mr-2" />
           {idea.upvotes ?? 0}
@@ -48,7 +60,14 @@ export default function SingleIdea({ idea, handleVote, deleteIdea }) {
             e.stopPropagation();
             handleVote.mutate({ ideaId: idea.id, type: "downvote" });
           }}
-          className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md"
+          disabled={
+            loadingIdea?.id === idea.id && loadingIdea.type === "downvote"
+          }
+          className={`flex items-center px-3 py-1 rounded-md ${
+            loadingIdea?.id === idea.id && loadingIdea.type === "downvote"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-red-500"
+          }`}
         >
           <ArrowFatDown size={20} weight="bold" className="mr-2" />
           {idea.downvotes ?? 0}
