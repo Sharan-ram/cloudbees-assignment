@@ -12,6 +12,8 @@ import SingleIdea from "./SingleIdea";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
+  const [loadingIdea, setLoadingIdea] = useState(null);
+
   const debouncedSearch = useDebounce(search, 300);
 
   const observer = useRef(null);
@@ -48,10 +50,12 @@ export default function IdeaList() {
   }, [hasNextPage, fetchNextPage]);
 
   const handleVote = useMutation({
-    mutationKey: ["voteIdea"],
-    mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
+    mutationFn: async ({ ideaId, type }) => {
+      return await voteIdea(ideaId, type);
+    },
     // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
+      setLoadingIdea({ id: ideaId, type });
       await queryClient.cancelQueries(["ideas", debouncedSearch]);
 
       const previousIdeas = queryClient.getQueryData([
@@ -106,7 +110,7 @@ export default function IdeaList() {
       );
     },
     onSettled: () => {
-      console.log("Invalidating 'ideas' query...");
+      setLoadingIdea(null);
       queryClient.invalidateQueries(["ideas", debouncedSearch]);
     },
   });
@@ -165,8 +169,15 @@ export default function IdeaList() {
           <SingleIdea
             key={idea.id}
             idea={idea}
-            handleVote={handleVote}
-            deleteIdea={deleteIdeaMutation}
+            onVoteClick={(ideaId, type) => handleVote.mutate({ ideaId, type })}
+            onDeleteClick={(ideaId) => deleteIdeaMutation.mutate(ideaId)}
+            upvoteDisabled={
+              loadingIdea?.id === idea.id && loadingIdea?.type === "upvote"
+            }
+            downvoteDisabled={
+              loadingIdea?.id === idea.id && loadingIdea?.type === "downvote"
+            }
+            page="list"
           />
         ))}
       </ul>

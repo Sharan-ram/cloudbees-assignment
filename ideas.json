@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "3ef50704-8e22-4729-9107-b118930b5aa4",
+    "summary": "Frontend tasks",
+    "description": "This is frontend task",
+    "employee": "Ethan Parker",
+    "priority": "Low",
+    "upvotes": 3,
+    "downvotes": 0
+  },
+  {
+    "id": "bc92872c-a816-49bd-925c-390813e009db",
+    "summary": "pushing new ideas to the top",
+    "description": "yes this is the description",
+    "employee": "Charlie Davis",
+    "priority": "Low",
+    "upvotes": 26,
+    "downvotes": 11
+  },
+  {
+    "id": "a2e57ce8-a7a5-4cfd-a201-d61baf4abf07",
+    "summary": "checking fo button disability",
+    "description": "form submit button should be disabled when submit is in progress",
+    "employee": "Danielle Brooks",
+    "priority": "Medium",
+    "upvotes": 0,
+    "downvotes": 0
+  },
+  {
+    "id": "24b633d2-938b-4c48-b4d3-0a7f7c4fcff6",
+    "summary": "Final test for taoster",
+    "description": "checking if react toastify is working fine",
+    "employee": "Ethan Parker",
+    "priority": "Medium",
+    "upvotes": 0,
+    "downvotes": 0
+  }
+]

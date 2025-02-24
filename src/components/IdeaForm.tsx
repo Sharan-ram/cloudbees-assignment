@@ -5,6 +5,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addIdea } from "@/lib/serverActions";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 const ideaSchema = z.object({
   summary: z.string().min(5, "Summary must be at least 5 characters."),
@@ -18,6 +20,8 @@ const ideaSchema = z.object({
 type IdeaFormData = z.infer<typeof ideaSchema>;
 
 export default function IdeaForm({ employees }: { employees: any }) {
+  const [submitInProgress, setSubmitInProgress] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -30,9 +34,17 @@ export default function IdeaForm({ employees }: { employees: any }) {
   const router = useRouter();
 
   const handleFormSubmit = async (data: IdeaFormData) => {
-    await addIdea(data);
-    reset();
-    router.push("/");
+    try {
+      setSubmitInProgress(true);
+      await addIdea(data);
+      reset();
+      setSubmitInProgress(false);
+      toast.success("New idea created successfully");
+      router.push("/");
+    } catch (e) {
+      setSubmitInProgress(false);
+      toast.error("Error creating idea!");
+    }
   };
 
   return (
@@ -92,7 +104,12 @@ export default function IdeaForm({ employees }: { employees: any }) {
       <div className="flex justify-end gap-2">
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded-md"
+          className={`px-4 py-2 text-white rounded-md ${
+            submitInProgress
+              ? "bg-green-300 cursor-not-allowed"
+              : "bg-green-600"
+          }`}
+          disabled={submitInProgress}
         >
           Submit
         </button>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-
+import ToastProvider from "@/components/ToastProvider";
 import QueryProvider from "@/components/QueryProvider";
 
 export const metadata: Metadata = {
@@ -17,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="max-w-3xl mx-auto p-6 bg-white">
+        <ToastProvider />
         <QueryProvider>
           <Navbar />
           <main className="max-w-4xl mx-auto p-6">{children}</main>
