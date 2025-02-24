@@ -8,5 +8,12 @@ export default async function IdeaDetails({ params }) {
 
   if (!idea) return notFound(); // Show 404 if idea is not found
 
-  return <IdeaDetailWrapper idea={idea} />;
+  return (
+    <div>
+      <div className="bg-white">
+        <h1 className="text-2xl font-bold mb-4 text-black">Idea Detail Page</h1>
+        <IdeaDetailWrapper idea={idea} />
+      </div>
+    </div>
+  );
 }

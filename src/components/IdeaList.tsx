@@ -10,6 +10,7 @@ import { getIdeas, voteIdea, deleteIdea } from "@/lib/serverActions";
 import { useDebounce } from "@/hooks/useDebounce";
 import SingleIdea from "./SingleIdea";
 import Shimmer from "./Shimmer";
+import { toast } from "react-toastify";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
@@ -141,11 +142,15 @@ export default function IdeaList() {
 
       return { previousIdeas };
     },
+    onSuccess: () => {
+      toast.success("Idea deleted successfully");
+    },
     onError: (_error, _variables, context) => {
       queryClient.setQueryData(
         ["ideas", debouncedSearch],
         context.previousIdeas
       );
+      toast.error("Failed to delete the idea");
     },
     onSettled: () => {
       queryClient.invalidateQueries(["ideas", debouncedSearch]);
