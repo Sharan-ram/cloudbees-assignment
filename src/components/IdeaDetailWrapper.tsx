@@ -35,13 +35,15 @@ export default function IdeaDetailWrapper({ idea }) {
   });
 
   return (
-    <SingleIdea
-      idea={localIdea}
-      upvoteDisabled={voteMutation.isPending && type === "upvote"}
-      downvoteDisabled={voteMutation.isPending && type === "downvote"}
-      onVoteClick={(ideaId, type) => voteMutation.mutate({ ideaId, type })}
-      onDeleteClick={() => {}}
-      page="detail"
-    />
+    <ul className="space-y-4">
+      <SingleIdea
+        idea={localIdea}
+        upvoteDisabled={voteMutation.isPending && type === "upvote"}
+        downvoteDisabled={voteMutation.isPending && type === "downvote"}
+        onVoteClick={(ideaId, type) => voteMutation.mutate({ ideaId, type })}
+        onDeleteClick={() => {}}
+        page="detail"
+      />
+    </ul>
   );
 }

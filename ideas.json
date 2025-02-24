@@ -1,11 +1,11 @@
 [
   {
-    "id": "3ef50704-8e22-4729-9107-b118930b5aa4",
-    "summary": "Frontend tasks",
-    "description": "This is frontend task",
-    "employee": "Ethan Parker",
-    "priority": "Low",
-    "upvotes": 3,
+    "id": "b6dc5c2b-882f-4233-9a38-798db4c76098",
+    "summary": "will be adding new ones for testing",
+    "description": "this is a sample description for adding new tasks",
+    "employee": "Hannah Lee",
+    "priority": "High",
+    "upvotes": 0,
     "downvotes": 0
   },
   {
@@ -14,17 +14,8 @@
     "description": "yes this is the description",
     "employee": "Charlie Davis",
     "priority": "Low",
-    "upvotes": 26,
-    "downvotes": 11
-  },
-  {
-    "id": "a2e57ce8-a7a5-4cfd-a201-d61baf4abf07",
-    "summary": "checking fo button disability",
-    "description": "form submit button should be disabled when submit is in progress",
-    "employee": "Danielle Brooks",
-    "priority": "Medium",
-    "upvotes": 0,
-    "downvotes": 0
+    "upvotes": 27,
+    "downvotes": 12
   },
   {
     "id": "24b633d2-938b-4c48-b4d3-0a7f7c4fcff6",
