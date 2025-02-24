@@ -9,6 +9,7 @@ import {
 import { getIdeas, voteIdea, deleteIdea } from "@/lib/serverActions";
 import { useDebounce } from "@/hooks/useDebounce";
 import SingleIdea from "./SingleIdea";
+import Shimmer from "./Shimmer";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
@@ -20,7 +21,7 @@ export default function IdeaList() {
 
   const queryClient = useQueryClient();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
       queryKey: ["ideas", debouncedSearch],
       queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, debouncedSearch),
@@ -164,36 +165,43 @@ export default function IdeaList() {
         onChange={(e) => setSearch(e.target.value)}
         className="w-full p-2 border border-gray-300 rounded-md mb-4 text-gray-600"
       />
-      <ul className="space-y-4">
-        {ideas.map((idea) => (
-          <SingleIdea
-            key={idea.id}
-            idea={idea}
-            onVoteClick={(ideaId, type) => handleVote.mutate({ ideaId, type })}
-            onDeleteClick={(ideaId) => deleteIdeaMutation.mutate(ideaId)}
-            upvoteDisabled={
-              loadingIdea?.id === idea.id && loadingIdea?.type === "upvote"
-            }
-            downvoteDisabled={
-              loadingIdea?.id === idea.id && loadingIdea?.type === "downvote"
-            }
-            page="list"
-          />
-        ))}
-      </ul>
+      {!isLoading ? (
+        <ul className="space-y-4">
+          {ideas.map((idea) => (
+            <SingleIdea
+              key={idea.id}
+              idea={idea}
+              onVoteClick={(ideaId, type) =>
+                handleVote.mutate({ ideaId, type })
+              }
+              onDeleteClick={(ideaId) => deleteIdeaMutation.mutate(ideaId)}
+              upvoteDisabled={
+                loadingIdea?.id === idea.id && loadingIdea?.type === "upvote"
+              }
+              downvoteDisabled={
+                loadingIdea?.id === idea.id && loadingIdea?.type === "downvote"
+              }
+              page="list"
+            />
+          ))}
+        </ul>
+      ) : (
+        <Shimmer />
+      )}
       {hasNextPage && <div id="load-more-trigger" className="h-10"></div>}
 
       {/* Loading Indicator */}
-      {isFetchingNextPage && (
-        <p className="text-center text-gray-500 mt-4">Loading more ideas...</p>
-      )}
+      {isFetchingNextPage && <Shimmer />}
 
       {/* No results message */}
-      {ideas.length === 0 && !isFetchingNextPage && !hasNextPage && (
-        <p className="text-center text-gray-500 mt-4">
-          No ideas found. Click on submit idea in the navbar to create one.
-        </p>
-      )}
+      {ideas.length === 0 &&
+        !isFetchingNextPage &&
+        !hasNextPage &&
+        !isLoading && (
+          <p className="text-center text-gray-500 mt-4">
+            No ideas found. Click on submit idea in the navbar to create one.
+          </p>
+        )}
     </div>
   );
 }
