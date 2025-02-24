@@ -44,7 +44,7 @@ export default function SingleIdea({
       {page !== "list" && (
         <>
           <div>
-            <p className="text-md text-gray-500">Priority: {idea.priority}</p>
+            <p className="text-sm text-gray-500">Priority: {idea.priority}</p>
           </div>
           <div className="mt-4">
             <p className="text-sm text-gray-700 mb-4">{idea.description}</p>
