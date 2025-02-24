@@ -5,7 +5,7 @@
     "description": "This is frontend task",
     "employee": "Ethan Parker",
     "priority": "Low",
-    "upvotes": 0,
+    "upvotes": 3,
     "downvotes": 0
   },
   {
@@ -14,8 +14,8 @@
     "description": "yes this is the description",
     "employee": "Charlie Davis",
     "priority": "Low",
-    "upvotes": 5,
-    "downvotes": 2
+    "upvotes": 7,
+    "downvotes": 4
   },
   {
     "id": "a2e57ce8-a7a5-4cfd-a201-d61baf4abf07",
@@ -23,15 +23,6 @@
     "description": "form submit button should be disabled when submit is in progress",
     "employee": "Danielle Brooks",
     "priority": "Medium",
-    "upvotes": 0,
-    "downvotes": 0
-  },
-  {
-    "id": "8b6361c7-1bd6-4e1e-8696-ba73f96dcfda",
-    "summary": "moving onto 4th",
-    "description": "yes this is 4th",
-    "employee": "George Hamilton",
-    "priority": "High",
     "upvotes": 0,
     "downvotes": 0
   },

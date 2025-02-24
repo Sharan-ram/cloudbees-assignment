@@ -51,7 +51,9 @@ export default function IdeaList() {
 
   const handleVote = useMutation({
     mutationKey: ["voteIdea"],
-    mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
+    mutationFn: async ({ ideaId, type }) => {
+      return await voteIdea(ideaId, type);
+    },
     // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
       setLoadingIdea({ id: ideaId, type });
