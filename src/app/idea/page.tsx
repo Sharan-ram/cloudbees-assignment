@@ -1,22 +1,13 @@
-"use client"; // 👈 Make the page interactive
-
-import { useState } from "react";
 import IdeaForm from "@/components/IdeaForm";
-import { addIdea, getIdeas } from "@/lib/serverActions";
+import { getEmployees } from "@/lib/serverActions";
 
-export default function IdeaPage() {
-  const [ideas, setIdeas] = useState([]);
-
-  const handleNewIdea = async (newIdea) => {
-    const updatedIdeas = await addIdea(newIdea);
-    setIdeas(updatedIdeas);
-  };
-
+export default async function IdeaPage() {
+  const employees = await getEmployees();
   return (
     <div className="bg-white">
-      <h1 className="text-2xl font-bold mb-4">Submit new idea</h1>
+      <h1 className="text-2xl font-bold mb-4 text-black">Submit new idea</h1>
       <div className="rounded-md shadow-md p-4">
-        <IdeaForm onSubmit={handleNewIdea} />
+        <IdeaForm employees={employees} />
       </div>
     </div>
   );

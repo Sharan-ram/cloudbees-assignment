@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as Dialog from "@radix-ui/react-dialog";
+import { addIdea } from "@/lib/serverActions";
+import { useRouter } from "next/navigation";
 
 const ideaSchema = z.object({
   summary: z.string().min(5, "Summary must be at least 5 characters."),
@@ -17,17 +17,7 @@ const ideaSchema = z.object({
 
 type IdeaFormData = z.infer<typeof ideaSchema>;
 
-const employees = [
-  { id: "1", name: "Alice Johnson" },
-  { id: "2", name: "Bob Smith" },
-  { id: "3", name: "Charlie Davis" },
-];
-
-export default function IdeaForm({
-  onSubmit,
-}: {
-  onSubmit: (data: IdeaFormData) => void;
-}) {
+export default function IdeaForm({ employees }: { employees: any }) {
   const {
     register,
     handleSubmit,
@@ -37,21 +27,21 @@ export default function IdeaForm({
     resolver: zodResolver(ideaSchema),
   });
 
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
-  const handleFormSubmit = (data: IdeaFormData) => {
-    onSubmit(data);
-    reset(); // Reset form after submission
-    setOpen(false); // Close modal
+  const handleFormSubmit = async (data: IdeaFormData) => {
+    await addIdea(data);
+    reset();
+    router.push("/");
   };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div>
-        <label className="block font-semibold">Summary</label>
+        <label className="block font-semibold text-black">Summary</label>
         <input
           {...register("summary")}
-          className="w-full border p-2 rounded-md"
+          className="w-full border p-2 rounded-md border-gray-300 text-gray-500"
         />
         {errors.summary && (
           <p className="text-red-500">{errors.summary.message}</p>
@@ -59,10 +49,10 @@ export default function IdeaForm({
       </div>
 
       <div>
-        <label className="block font-semibold">Description</label>
+        <label className="block font-semibold text-black">Description</label>
         <textarea
           {...register("description")}
-          className="w-full border p-2 rounded-md"
+          className="w-full border p-2 rounded-md border-gray-300 text-gray-500"
         />
         {errors.description && (
           <p className="text-red-500">{errors.description.message}</p>
@@ -70,10 +60,10 @@ export default function IdeaForm({
       </div>
 
       <div>
-        <label className="block font-semibold">Employee</label>
+        <label className="block font-semibold text-black">Employee</label>
         <select
           {...register("employee")}
-          className="w-full border p-2 rounded-md"
+          className="w-full border p-2 rounded-md border-gray-300 text-gray-500"
         >
           <option value="">Select Employee</option>
           {employees.map((emp) => (
@@ -88,10 +78,10 @@ export default function IdeaForm({
       </div>
 
       <div>
-        <label className="block font-semibold">Priority</label>
+        <label className="block font-semibold text-black">Priority</label>
         <select
           {...register("priority")}
-          className="w-full border p-2 rounded-md"
+          className="w-full border p-2 rounded-md border-gray-300 text-gray-500"
         >
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>

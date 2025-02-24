@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="max-w-3xl mx-auto p-6">
+      <body className="max-w-3xl mx-auto p-6 bg-white">
         <QueryProvider>
           <Navbar />
           <main className="max-w-4xl mx-auto p-6">{children}</main>

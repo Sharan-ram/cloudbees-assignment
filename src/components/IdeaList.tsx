@@ -6,24 +6,24 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { ArrowFatUp, ArrowFatDown, Trash } from "phosphor-react";
-import { getIdeas, voteIdea } from "@/lib/serverActions";
+import { getIdeas, voteIdea, deleteIdea } from "@/lib/serverActions";
+import { useDebounce } from "@/hooks/useDebounce";
+import SingleIdea from "./SingleIdea";
 
-export default function IdeaList({ initialIdeas, total }) {
+export default function IdeaList() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   const observer = useRef(null);
-  const router = useRouter();
 
   const queryClient = useQueryClient();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["ideas", search], // Ensures re-fetch when search changes
-      queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, search),
+      queryKey: ["ideas", debouncedSearch],
+      queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, debouncedSearch),
       getNextPageParam: (lastPage, allPages) =>
-        lastPage.ideas.length < 20 ? undefined : allPages.length + 1, // Stop fetching when no more pages
+        lastPage.ideas.length < 20 ? undefined : allPages.length + 1,
       initialPageParam: 1,
     });
 
@@ -32,7 +32,7 @@ export default function IdeaList({ initialIdeas, total }) {
     observer.current = new IntersectionObserver(
       async (entries) => {
         const first = entries[0];
-        if (first.isIntersecting) {
+        if (first.isIntersecting && hasNextPage) {
           fetchNextPage();
         }
       },
@@ -47,17 +47,27 @@ export default function IdeaList({ initialIdeas, total }) {
     return () => observer.current?.disconnect();
   }, [hasNextPage, fetchNextPage]);
 
-  const mutation = useMutation({
+  const handleVote = useMutation({
+    mutationKey: ["voteIdea"],
     mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
+    // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
-      await queryClient.cancelQueries(["ideas", search]); // Stop other fetches
+      await queryClient.cancelQueries(["ideas", debouncedSearch]);
 
-      const previousIdeas = queryClient.getQueryData(["ideas", search]); // Get current data
+      const previousIdeas = queryClient.getQueryData([
+        "ideas",
+        debouncedSearch,
+      ]);
+      console.log({ ideaId, type, previousIdeas });
 
       // Optimistically update UI
-      queryClient.setQueryData(["ideas", search], (oldData) => {
-        if (!oldData) return oldData;
-        return {
+      queryClient.setQueryData(["ideas", debouncedSearch], (oldData) => {
+        console.log({ oldData });
+        if (!oldData || !oldData.pages) {
+          return { pages: [], pageParams: [] };
+        }
+
+        const obj = {
           pages: oldData.pages.map((page) => ({
             ...page,
             ideas: page.ideas.map((idea) =>
@@ -65,53 +75,79 @@ export default function IdeaList({ initialIdeas, total }) {
                 ? {
                     ...idea,
                     upvotes:
-                      type === "upvote" ? idea.upvotes + 1 : idea.upvotes,
+                      type === "upvote"
+                        ? Number(idea.upvotes) + 1
+                        : idea.upvotes,
                     downvotes:
-                      type === "downvote" ? idea.downvotes + 1 : idea.downvotes,
+                      type === "downvote"
+                        ? Number(idea.downvotes) + 1
+                        : idea.downvotes,
                   }
                 : idea
             ),
           })),
+          pageParams: oldData.pageParams,
         };
+
+        console.log({ obj });
+
+        return obj;
       });
+
+      console.log({ previousIdeas });
 
       return { previousIdeas };
     },
     onError: (_error, _variables, context) => {
-      queryClient.setQueryData(["ideas", search], context.previousIdeas); // Revert if error
+      console.log("onError is called", _error);
+      queryClient.setQueryData(
+        ["ideas", debouncedSearch],
+        context.previousIdeas
+      );
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["ideas", search]); // Ensure correct data
+      console.log("Invalidating 'ideas' query...");
+      queryClient.invalidateQueries(["ideas", debouncedSearch]);
     },
   });
 
-  const deleteMutation = useMutation({
+  const deleteIdeaMutation = useMutation({
     mutationFn: (ideaId) => deleteIdea(ideaId),
     onMutate: async (ideaId) => {
-      await queryClient.cancelQueries(["ideas", search]);
+      await queryClient.cancelQueries(["ideas", debouncedSearch]);
 
-      const previousIdeas = queryClient.getQueryData(["ideas", search]);
+      const previousIdeas = queryClient.getQueryData([
+        "ideas",
+        debouncedSearch,
+      ]);
 
-      queryClient.setQueryData(["ideas", search], (oldData) => {
-        if (!oldData) return { pages: [] }; // ✅ Ensure pages always exists
+      queryClient.setQueryData(["ideas", debouncedSearch], (oldData) => {
+        console.log({ oldData });
+        if (!oldData) return { pages: [], pageParams: [] };
 
         return {
           pages: oldData.pages.map((page) => ({
             ...page,
             ideas: page.ideas.filter((idea) => idea.id !== ideaId),
           })),
+          pageParams: oldData.pageParams,
         };
       });
 
       return { previousIdeas };
     },
     onError: (_error, _variables, context) => {
-      queryClient.setQueryData(["ideas", search], context.previousIdeas);
+      queryClient.setQueryData(
+        ["ideas", debouncedSearch],
+        context.previousIdeas
+      );
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["ideas", search]);
+      queryClient.invalidateQueries(["ideas", debouncedSearch]);
     },
   });
+
+  console.log({ data });
 
   const ideas = data?.pages?.flatMap((page) => page.ideas) || [];
 
@@ -122,71 +158,18 @@ export default function IdeaList({ initialIdeas, total }) {
         placeholder="Search ideas..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+        className="w-full p-2 border border-gray-300 rounded-md mb-4 text-gray-600"
       />
       <ul className="space-y-4">
-        {ideas.map((idea, index) => (
-          <li
-            key={index}
-            className="p-4 border rounded-md shadow-md cursor-pointer hover:bg-gray-100 transition"
-            onClick={() => router.push(`/idea/${idea.id}`)} // Navigate to details page
-          >
-            <div className="flex items-center">
-              <div className="w-[80%]">
-                <h3 className="text-lg font-semibold">{idea.summary}</h3>
-              </div>
-              <div className="w-[20%] flex justify-end">
-                {/* <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent parent click event
-                    deleteMutation.mutate(idea.id);
-                  }}
-                  className="ml-4 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
-                > */}
-                <Trash
-                  size={24}
-                  weight="bold"
-                  color="#EF4444"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent parent click event
-                    deleteMutation.mutate(idea.id);
-                  }}
-                />
-                {/* </button> */}
-              </div>
-            </div>
-
-            <p className="text-sm text-gray-500">
-              Submitted by: {idea.employee}
-            </p>
-
-            {/* Voting Buttons with Upvote/Downvote Counts */}
-            <div className="flex items-center space-x-4 mt-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent parent click event
-                  mutation.mutate({ ideaId: idea.id, type: "upvote" });
-                }}
-                className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md"
-              >
-                <ArrowFatUp size={20} weight="bold" className="mr-2" />
-                {idea.upvotes ?? 0}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  mutation.mutate({ ideaId: idea.id, type: "downvote" });
-                }}
-                className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md"
-              >
-                <ArrowFatDown size={20} weight="bold" className="mr-2" />
-                {idea.downvotes ?? 0}
-              </button>
-            </div>
-          </li>
+        {ideas.map((idea) => (
+          <SingleIdea
+            key={idea.id}
+            idea={idea}
+            handleVote={handleVote}
+            deleteIdea={deleteIdeaMutation}
+          />
         ))}
       </ul>
-      {/* Infinite Scroll Trigger */}
       {hasNextPage && <div id="load-more-trigger" className="h-10"></div>}
 
       {/* Loading Indicator */}
@@ -195,9 +178,9 @@ export default function IdeaList({ initialIdeas, total }) {
       )}
 
       {/* No results message */}
-      {ideas.length === 0 && search && (
+      {ideas.length === 0 && !isFetchingNextPage && !hasNextPage && (
         <p className="text-center text-gray-500 mt-4">
-          No matching ideas found.
+          No ideas found. Click on submit idea in the navbar to create one.
         </p>
       )}
     </div>

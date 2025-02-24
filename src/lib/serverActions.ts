@@ -2,6 +2,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { v4 as uuid } from "uuid";
 
 const ideasFilePath = path.join(process.cwd(), "ideas.json");
 const employeesFilePath = path.join(process.cwd(), "employees.json");
@@ -22,10 +23,7 @@ export async function getIdeas(page = 1, limit = 20, search = "") {
     const data = await fs.readFile(ideasFilePath, "utf-8");
     let allIdeas = JSON.parse(data);
 
-    allIdeas.forEach((idea) => {
-      idea.upvotes = Number(idea.upvotes) || 0;
-      idea.downvotes = Number(idea.downvotes) || 0;
-    });
+    if (allIdeas.length === 0) return { ideas: [], total: 0 };
 
     if (search) {
       const lowerCaseSearch = search.toLowerCase();
@@ -54,15 +52,9 @@ export async function getIdeas(page = 1, limit = 20, search = "") {
 
 export async function voteIdea(ideaId, type) {
   try {
+    console.log("inside voteIdea");
     let data = await fs.readFile(ideasFilePath, "utf-8");
     let ideas = JSON.parse(data);
-
-    // Ensure votes are numbers
-    ideas = ideas.map((idea) => ({
-      ...idea,
-      upvotes: Number(idea.upvotes) || 0,
-      downvotes: Number(idea.downvotes) || 0, // Fix for downvotes
-    }));
 
     const updatedIdeas = ideas.map((idea) => {
       if (idea.id === ideaId) {
@@ -73,11 +65,13 @@ export async function voteIdea(ideaId, type) {
           downvotes:
             type === "downvote"
               ? (Number(idea.downvotes) || 0) + 1
-              : idea.downvotes, // Fix here
+              : idea.downvotes,
         };
       }
       return idea;
     });
+
+    console.log({ updatedIdeas });
 
     await fs.writeFile(
       ideasFilePath,
@@ -85,10 +79,16 @@ export async function voteIdea(ideaId, type) {
       "utf-8"
     );
 
-    return updatedIdeas;
+    return {
+      ideas: updatedIdeas,
+      total: updatedIdeas.length,
+    };
   } catch (error) {
     console.error("Error updating votes:", error);
-    return [];
+    return {
+      ideas: [],
+      total: 0,
+    };
   }
 }
 
@@ -105,8 +105,13 @@ export async function getIdeaById(id) {
 
 export async function addIdea(newIdea) {
   try {
-    const ideas = await getIdeas();
-    const updatedIdeas = [...ideas, { id: Date.now(), ...newIdea }];
+    const { ideas } = await getIdeas();
+    const updatedIdeas = [
+      ...ideas,
+      { id: uuid(), ...newIdea, upvotes: 0, downvotes: 0 },
+    ];
+
+    console.log({ updatedIdeas });
 
     await fs.writeFile(
       ideasFilePath,
@@ -136,9 +141,9 @@ export async function deleteIdea(ideaId) {
       "utf-8"
     );
 
-    return updatedIdeas;
+    return { ideas: updatedIdeas, total: updatedIdeas.length };
   } catch (error) {
     console.error("Error deleting idea:", error);
-    return [];
+    return { ideas: [], total: 0 };
   }
 }
