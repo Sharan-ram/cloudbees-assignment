@@ -1,1 +1,56 @@
-[]
+[
+  {
+    "id": "bc92872c-a816-49bd-925c-390813e009db",
+    "summary": "pushing new ideas to the top",
+    "description": "yes this is the description",
+    "employee": "Charlie Davis",
+    "priority": "Low",
+    "upvotes": 0,
+    "downvotes": 0
+  },
+  {
+    "id": "8847ea42-0ef3-489e-b919-4d3d40cb7c19",
+    "summary": "This is the first idea",
+    "description": "First idea description",
+    "employee": "Alice Johnson",
+    "priority": "Medium",
+    "upvotes": 0,
+    "downvotes": 0
+  },
+  {
+    "id": "7d1bab13-1511-42f1-94d6-8845e6a18a5e",
+    "summary": "2nd idea",
+    "description": "2nd idea description is here",
+    "employee": "Charlie Davis",
+    "priority": "Medium",
+    "upvotes": 0,
+    "downvotes": 0
+  },
+  {
+    "id": "b22b6c74-bf46-4b0c-8711-963f6cc8aa4c",
+    "summary": "we are setting 3rd idea",
+    "description": "now we are into 3rd idea description",
+    "employee": "Bob Smith",
+    "priority": "High",
+    "upvotes": 0,
+    "downvotes": 0
+  },
+  {
+    "id": "8b6361c7-1bd6-4e1e-8696-ba73f96dcfda",
+    "summary": "moving onto 4th",
+    "description": "yes this is 4th",
+    "employee": "George Hamilton",
+    "priority": "High",
+    "upvotes": 0,
+    "downvotes": 0
+  },
+  {
+    "id": "24b633d2-938b-4c48-b4d3-0a7f7c4fcff6",
+    "summary": "Final test for taoster",
+    "description": "checking if react toastify is working fine",
+    "employee": "Ethan Parker",
+    "priority": "Medium",
+    "upvotes": 0,
+    "downvotes": 0
+  }
+]

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addIdea } from "@/lib/serverActions";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const ideaSchema = z.object({
   summary: z.string().min(5, "Summary must be at least 5 characters."),
@@ -30,9 +31,14 @@ export default function IdeaForm({ employees }: { employees: any }) {
   const router = useRouter();
 
   const handleFormSubmit = async (data: IdeaFormData) => {
-    await addIdea(data);
-    reset();
-    router.push("/");
+    try {
+      await addIdea(data);
+      reset();
+      toast.success("New idea created successfully");
+      router.push("/");
+    } catch (e) {
+      toast.error("Error creating idea!");
+    }
   };
 
   return (

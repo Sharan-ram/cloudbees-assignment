@@ -107,11 +107,11 @@ export async function addIdea(newIdea) {
   try {
     const { ideas } = await getIdeas();
     const updatedIdeas = [
-      ...ideas,
       { id: uuid(), ...newIdea, upvotes: 0, downvotes: 0 },
+      ...ideas,
     ];
 
-    console.log({ updatedIdeas });
+    // console.log({ updatedIdeas });
 
     await fs.writeFile(
       ideasFilePath,
