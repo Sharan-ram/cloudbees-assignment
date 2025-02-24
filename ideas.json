@@ -9,31 +9,13 @@
     "downvotes": 0
   },
   {
-    "id": "7d1bab13-1511-42f1-94d6-8845e6a18a5e",
-    "summary": "2nd idea",
-    "description": "2nd idea description is here",
-    "employee": "Charlie Davis",
-    "priority": "Medium",
-    "upvotes": 6,
-    "downvotes": 2
-  },
-  {
     "id": "bc92872c-a816-49bd-925c-390813e009db",
     "summary": "pushing new ideas to the top",
     "description": "yes this is the description",
     "employee": "Charlie Davis",
     "priority": "Low",
-    "upvotes": 4,
+    "upvotes": 5,
     "downvotes": 2
-  },
-  {
-    "id": "8847ea42-0ef3-489e-b919-4d3d40cb7c19",
-    "summary": "This is the first idea",
-    "description": "First idea description",
-    "employee": "Alice Johnson",
-    "priority": "Medium",
-    "upvotes": 3,
-    "downvotes": 0
   },
   {
     "id": "a2e57ce8-a7a5-4cfd-a201-d61baf4abf07",

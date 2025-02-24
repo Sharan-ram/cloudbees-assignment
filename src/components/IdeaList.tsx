@@ -168,9 +168,15 @@ export default function IdeaList() {
           <SingleIdea
             key={idea.id}
             idea={idea}
-            handleVote={handleVote}
-            deleteIdea={deleteIdeaMutation}
-            loadingIdea={loadingIdea}
+            onVoteClick={(ideaId, type) => handleVote.mutate({ ideaId, type })}
+            onDeleteClick={(ideaId) => deleteIdeaMutation.mutate(ideaId)}
+            upvoteDisabled={
+              loadingIdea?.id === idea.id && loadingIdea?.type === "upvote"
+            }
+            downvoteDisabled={
+              loadingIdea?.id === idea.id && loadingIdea?.type === "downvote"
+            }
+            page="list"
           />
         ))}
       </ul>
