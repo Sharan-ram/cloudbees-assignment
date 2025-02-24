@@ -3,6 +3,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { v4 as uuid } from "uuid";
+import { VoteType } from "@/types";
 
 const ideasFilePath = path.join(process.cwd(), "ideas.json");
 const employeesFilePath = path.join(process.cwd(), "employees.json");
@@ -50,7 +51,7 @@ export async function getIdeas(page = 1, limit = 20, search = "") {
   }
 }
 
-export async function voteIdea(ideaId, type) {
+export async function voteIdea(ideaId: string, type: VoteType) {
   try {
     let data = await fs.readFile(ideasFilePath, "utf-8");
     let ideas = JSON.parse(data);

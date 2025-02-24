@@ -2,6 +2,16 @@
 
 import { ArrowFatUp, ArrowFatDown, Trash } from "phosphor-react";
 import { useRouter } from "next/navigation";
+import { Idea, VoteType } from "@/types";
+
+interface SingleIdeaProps {
+  idea: Idea;
+  upvoteDisabled: boolean;
+  downvoteDisabled: boolean;
+  onVoteClick: (ideaId: string, type: VoteType) => void;
+  onDeleteClick: (ideaId: string) => void;
+  page: "list" | "detail";
+}
 
 export default function SingleIdea({
   idea,
@@ -10,7 +20,7 @@ export default function SingleIdea({
   onVoteClick,
   onDeleteClick,
   page = "list",
-}) {
+}: SingleIdeaProps) {
   const router = useRouter();
 
   return (

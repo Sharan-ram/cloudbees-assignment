@@ -6,7 +6,7 @@
     "employee": "Hannah Lee",
     "priority": "High",
     "upvotes": 0,
-    "downvotes": 0
+    "downvotes": 1
   },
   {
     "id": "bc92872c-a816-49bd-925c-390813e009db",
@@ -14,7 +14,7 @@
     "description": "yes this is the description",
     "employee": "Charlie Davis",
     "priority": "Low",
-    "upvotes": 27,
+    "upvotes": 28,
     "downvotes": 12
   },
   {
