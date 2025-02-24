@@ -55,7 +55,7 @@ export async function voteIdea(ideaId, type) {
     let data = await fs.readFile(ideasFilePath, "utf-8");
     let ideas = JSON.parse(data);
 
-    let updatedIdea = null; // ✅ Store the updated idea
+    let updatedIdea = null;
 
     const updatedIdeas = ideas.map((idea) => {
       if (idea.id === ideaId) {

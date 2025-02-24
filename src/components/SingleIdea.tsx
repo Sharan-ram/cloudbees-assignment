@@ -15,26 +15,31 @@ export default function SingleIdea({
 
   return (
     <li
-      className="p-4 border rounded-md shadow-md cursor-pointer hover:bg-gray-100 transition bg-white"
-      onClick={() => router.push(`/idea/${idea.id}`)} // Navigate to details page
+      className={`p-4 border rounded-md shadow-md hover:bg-gray-100 transition bg-white ${
+        page === "list" && "cursor-pointer"
+      }`}
+      onClick={
+        page === "list" ? () => router.push(`/idea/${idea.id}`) : () => {}
+      }
     >
       <div className="flex items-center">
         <div className="w-[80%]">
           <h3 className="text-lg font-semibold text-black">{idea.summary}</h3>
         </div>
-        <div className="w-[20%] flex justify-end">
-          <Trash
-            size={24}
-            weight="bold"
-            color="#EF4444"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent parent click event
-              // deleteIdea.mutate(idea.id);
-              onDeleteClick(idea.id);
-            }}
-          />
-          {/* </button> */}
-        </div>
+        {page === "list" && (
+          <div className="w-[20%] flex justify-end">
+            <Trash
+              size={24}
+              weight="bold"
+              color="#EF4444"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent parent click event
+                // deleteIdea.mutate(idea.id);
+                onDeleteClick(idea.id);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <div>

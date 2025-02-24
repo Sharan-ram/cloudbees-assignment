@@ -50,7 +50,6 @@ export default function IdeaList() {
   }, [hasNextPage, fetchNextPage]);
 
   const handleVote = useMutation({
-    mutationKey: ["voteIdea"],
     mutationFn: async ({ ideaId, type }) => {
       return await voteIdea(ideaId, type);
     },
