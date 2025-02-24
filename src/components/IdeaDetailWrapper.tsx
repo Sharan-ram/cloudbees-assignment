@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { voteIdea } from "@/lib/serverActions";
 
 import SingleIdea from "@/components/SingleIdea";
+import { VoteType } from "@/types";
 
 export default function IdeaDetailWrapper({ idea }) {
   const queryClient = useQueryClient();
@@ -12,12 +13,18 @@ export default function IdeaDetailWrapper({ idea }) {
   const [type, setType] = useState(null);
 
   const voteMutation = useMutation({
-    mutationFn: async ({ ideaId, type }) => {
+    mutationFn: async ({
+      ideaId,
+      type,
+    }: {
+      ideaId: string;
+      type: VoteType;
+    }) => {
       return await voteIdea(ideaId, type);
     },
     onMutate: async ({ ideaId, type }) => {
       setType(type);
-      await queryClient.cancelQueries(["idea", ideaId]);
+      await queryClient.cancelQueries({ queryKey: ["idea", ideaId] });
 
       setLocalIdea((prev) => ({
         ...prev,
@@ -30,7 +37,7 @@ export default function IdeaDetailWrapper({ idea }) {
     },
     onSettled: () => {
       setType(null);
-      queryClient.invalidateQueries(["idea", localIdea.id]);
+      queryClient.invalidateQueries({ queryKey: ["idea", localIdea.id] });
     },
   });
 
