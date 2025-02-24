@@ -11,6 +11,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import SingleIdea from "./SingleIdea";
 import Shimmer from "./Shimmer";
 import { toast } from "react-toastify";
+import { Idea, VoteType } from "@/types";
 
 export default function IdeaList() {
   const [search, setSearch] = useState("");
@@ -52,13 +53,19 @@ export default function IdeaList() {
   }, [hasNextPage, fetchNextPage]);
 
   const handleVote = useMutation({
-    mutationFn: async ({ ideaId, type }) => {
+    mutationFn: async ({
+      ideaId,
+      type,
+    }: {
+      ideaId: string;
+      type: VoteType;
+    }) => {
       return await voteIdea(ideaId, type);
     },
     // Optimistic UI updates
-    onMutate: async ({ ideaId, type }) => {
+    onMutate: async ({ ideaId, type }: { ideaId: string; type: VoteType }) => {
       setLoadingIdea({ id: ideaId, type });
-      await queryClient.cancelQueries(["ideas", debouncedSearch]);
+      await queryClient.cancelQueries({ queryKey: ["ideas", debouncedSearch] });
 
       const previousIdeas = queryClient.getQueryData([
         "ideas",
@@ -67,7 +74,10 @@ export default function IdeaList() {
       console.log({ ideaId, type, previousIdeas });
 
       // Optimistically update UI
-      queryClient.setQueryData(["ideas", debouncedSearch], (oldData) => {
+      queryClient.setQueryData<{
+        pages: { ideas: Idea[] }[];
+        pageParams: number[];
+      }>(["ideas", debouncedSearch], (oldData) => {
         console.log({ oldData });
         if (!oldData || !oldData.pages) {
           return { pages: [], pageParams: [] };
@@ -113,21 +123,24 @@ export default function IdeaList() {
     },
     onSettled: () => {
       setLoadingIdea(null);
-      queryClient.invalidateQueries(["ideas", debouncedSearch]);
+      queryClient.invalidateQueries({ queryKey: ["ideas", debouncedSearch] });
     },
   });
 
   const deleteIdeaMutation = useMutation({
-    mutationFn: (ideaId) => deleteIdea(ideaId),
+    mutationFn: (ideaId: string) => deleteIdea(ideaId),
     onMutate: async (ideaId) => {
-      await queryClient.cancelQueries(["ideas", debouncedSearch]);
+      await queryClient.cancelQueries({ queryKey: ["ideas", debouncedSearch] });
 
       const previousIdeas = queryClient.getQueryData([
         "ideas",
         debouncedSearch,
       ]);
 
-      queryClient.setQueryData(["ideas", debouncedSearch], (oldData) => {
+      queryClient.setQueryData<{
+        pages: { ideas: Idea[] }[];
+        pageParams: number[];
+      }>(["ideas", debouncedSearch], (oldData) => {
         console.log({ oldData });
         if (!oldData) return { pages: [], pageParams: [] };
 
@@ -153,7 +166,7 @@ export default function IdeaList() {
       toast.error("Failed to delete the idea");
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["ideas", debouncedSearch]);
+      queryClient.invalidateQueries({ queryKey: ["ideas", debouncedSearch] });
     },
   });
 
