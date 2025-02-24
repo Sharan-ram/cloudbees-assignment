@@ -6,7 +6,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { getIdeas, voteIdea } from "@/lib/serverActions";
+import { getIdeas, voteIdea, deleteIdea } from "@/lib/serverActions";
 import { useDebounce } from "@/hooks/useDebounce";
 import SingleIdea from "./SingleIdea";
 
@@ -18,10 +18,15 @@ export default function IdeaList() {
 
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    window.handleVote = handleVote;
+    console.log("✅ [EXPOSED] handleVote is now available in DevTools");
+  }, []);
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       queryKey: ["ideas", debouncedSearch],
-      queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, search),
+      queryFn: ({ pageParam = 1 }) => getIdeas(pageParam, 20, debouncedSearch),
       getNextPageParam: (lastPage, allPages) =>
         lastPage.ideas.length < 20 ? undefined : allPages.length + 1,
       initialPageParam: 1,
@@ -48,17 +53,33 @@ export default function IdeaList() {
   }, [hasNextPage, fetchNextPage]);
 
   const handleVote = useMutation({
-    mutationFn: ({ ideaId, type }) => voteIdea(ideaId, type),
+    mutationFn: async ({ ideaId, type }) => {
+      try {
+        console.log("mutationFn is called");
+        const res = await voteIdea(ideaId, type);
+        return res;
+      } catch (e) {
+        console.log(e);
+      }
+    },
     // Optimistic UI updates
     onMutate: async ({ ideaId, type }) => {
-      await queryClient.cancelQueries(["ideas", search]);
+      await queryClient.cancelQueries(["ideas", debouncedSearch]);
 
-      const previousIdeas = queryClient.getQueryData(["ideas", search]);
+      const previousIdeas = queryClient.getQueryData([
+        "ideas",
+        debouncedSearch,
+      ]);
+      console.log({ ideaId, type, previousIdeas });
 
       // Optimistically update UI
-      queryClient.setQueryData(["ideas", search], (oldData) => {
-        if (!oldData) return oldData;
-        return {
+      queryClient.setQueryData(["ideas", debouncedSearch], (oldData) => {
+        console.log({ oldData });
+        if (!oldData || !oldData.pages) {
+          return { pages: [], total: 0 };
+        }
+
+        const obj = {
           pages: oldData.pages.map((page) => ({
             ...page,
             ideas: page.ideas.map((idea) =>
@@ -78,27 +99,40 @@ export default function IdeaList() {
             ),
           })),
         };
+
+        console.log({ obj });
+
+        return obj;
       });
+
+      console.log({ previousIdeas });
 
       return { previousIdeas };
     },
     onError: (_error, _variables, context) => {
-      queryClient.setQueryData(["ideas", search], context.previousIdeas);
+      queryClient.setQueryData(
+        ["ideas", debouncedSearch],
+        context.previousIdeas
+      );
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["ideas", search]);
+      console.log("Invalidating 'ideas' query...");
+      queryClient.invalidateQueries(["ideas", debouncedSearch]);
     },
   });
 
   const deleteIdeaMutation = useMutation({
-    mutationFn: (ideaId) => deleteIdea(ideaId),
+    mutationFn: async (ideaId) => await deleteIdea(ideaId),
     onMutate: async (ideaId) => {
-      await queryClient.cancelQueries(["ideas", search]);
+      await queryClient.cancelQueries(["ideas", debouncedSearch]);
 
-      const previousIdeas = queryClient.getQueryData(["ideas", search]);
+      const previousIdeas = queryClient.getQueryData([
+        "ideas",
+        debouncedSearch,
+      ]);
 
-      queryClient.setQueryData(["ideas", search], (oldData) => {
-        if (!oldData) return { pages: [] }; // ✅ Ensure pages always exists
+      queryClient.setQueryData(["ideas", debouncedSearch], (oldData) => {
+        if (!oldData) return { pages: [] };
 
         return {
           pages: oldData.pages.map((page) => ({
@@ -111,10 +145,13 @@ export default function IdeaList() {
       return { previousIdeas };
     },
     onError: (_error, _variables, context) => {
-      queryClient.setQueryData(["ideas", search], context.previousIdeas);
+      queryClient.setQueryData(
+        ["ideas", debouncedSearch],
+        context.previousIdeas
+      );
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["ideas", search]);
+      queryClient.invalidateQueries(["ideas", debouncedSearch]);
     },
   });
 
@@ -130,9 +167,9 @@ export default function IdeaList() {
         className="w-full p-2 border border-gray-300 rounded-md mb-4 text-gray-600"
       />
       <ul className="space-y-4">
-        {ideas.map((idea, index) => (
+        {ideas.map((idea) => (
           <SingleIdea
-            key={index}
+            key={idea.id}
             idea={idea}
             handleVote={handleVote}
             deleteIdea={deleteIdeaMutation}

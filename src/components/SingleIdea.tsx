@@ -35,7 +35,7 @@ export default function SingleIdea({ idea, handleVote, deleteIdea }) {
       <div className="flex items-center space-x-4 mt-2">
         <button
           onClick={(e) => {
-            e.stopPropagation(); // Prevent parent click event
+            e.stopPropagation();
             handleVote.mutate({ ideaId: idea.id, type: "upvote" });
           }}
           className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md"

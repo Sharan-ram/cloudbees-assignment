@@ -52,6 +52,7 @@ export async function getIdeas(page = 1, limit = 20, search = "") {
 
 export async function voteIdea(ideaId, type) {
   try {
+    console.log("inside voteIdea");
     let data = await fs.readFile(ideasFilePath, "utf-8");
     let ideas = JSON.parse(data);
 
@@ -70,16 +71,24 @@ export async function voteIdea(ideaId, type) {
       return idea;
     });
 
+    console.log({ updatedIdeas });
+
     await fs.writeFile(
       ideasFilePath,
       JSON.stringify(updatedIdeas, null, 2),
       "utf-8"
     );
 
-    return updatedIdeas;
+    return {
+      ideas: updatedIdeas,
+      total: updatedIdeas.length,
+    };
   } catch (error) {
     console.error("Error updating votes:", error);
-    return [];
+    return {
+      ideas: [],
+      total: 0,
+    };
   }
 }
 
@@ -132,9 +141,9 @@ export async function deleteIdea(ideaId) {
       "utf-8"
     );
 
-    return updatedIdeas;
+    return { ideas: updatedIdeas, total: updatedIdeas.length };
   } catch (error) {
     console.error("Error deleting idea:", error);
-    return [];
+    return { ideas: [], total: 0 };
   }
 }
